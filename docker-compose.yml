@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  smart-auth:
+    container_name: smart-auth
+    build:
+      context: ./smart-auth
+    volumes:
+      - .:/smart-auth/usr/src/app
+      - /smart-auth/usr/src/app/node_modules
+    ports:
+      - ${AUTH_SERVER_PORT}:${AUTH_SERVER_PORT}
+      - 4000:4000
+    command: npm run start:dev
+    env_file:
+      - .env
+    networks:
+      - webnet
+  user:
+    container_name: user
+    build:
+      context: ./user
+    volumes:
+      - .:/user/usr/src/app
+      - /user/usr/src/app/node_modules
+    ports:
+      - ${USER_SERVER_PORT}:${USER_SERVER_PORT}
+      - 4010:4010
+    command: npm run start:dev
+    env_file:
+      - .env
+    networks:
+      - webnet
+    links:
+      - postgres
+  postgres:
+    container_name: postgres
+    image:  postgres # use latest official postgres version
+    networks:
+      - webnet
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+      PG_DATA: /var/lib/postgresql/data
+      DATABASE_URL: /postgresql://darkvador:skywalker@postgres:5432/smartengo_db
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+networks:
+  webnet:
+volumes:
+  pgdata:
